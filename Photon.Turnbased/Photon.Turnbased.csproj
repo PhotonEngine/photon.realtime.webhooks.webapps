@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net452</TargetFramework>
+    <RuntimeIdentifier>win7-x86</RuntimeIdentifier>
+    <ApplicationInsightsResourceId>/subscriptions/5afd17a6-6931-4828-9db5-7fd7b81d0b8f/resourcegroups/exit-games/providers/microsoft.insights/components/Photon.Turnbased</ApplicationInsightsResourceId>
+    <ApplicationInsightsAnnotationResourceId>/subscriptions/5afd17a6-6931-4828-9db5-7fd7b81d0b8f/resourcegroups/exit-games/providers/microsoft.insights/components/Photon.Turnbased</ApplicationInsightsAnnotationResourceId>
+    <RootNamespace>Photon.Webhooks.Turnbased</RootNamespace>
+    <AssemblyName>Photon.Webhooks.Turnbased</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="DataAccess\Redis.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Properties\PublishProfiles\PhotonTurnbased-WebAPI - Web Deploy.pubxml" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.3" />
+    <PackageReference Include="Microsoft.AspNetCore" Version="1.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Azure.NotificationHubs" Version="1.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="1.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="1.1.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="1.1.0" />
+    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.2.3" />
+    <PackageReference Include="ServiceStack" Version="4.5.8" />
+    <PackageReference Include="WindowsAzure.ServiceBus" Version="4.0.0" />
+    <PackageReference Include="WindowsAzure.Storage" Version="8.1.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Web" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\PublishProfiles\" />
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+</Project>
