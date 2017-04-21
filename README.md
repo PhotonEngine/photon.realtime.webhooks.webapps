@@ -2,12 +2,12 @@
 
 ## Summary
 
-This is the **Photon Turnbased Webhooks** sample using [Azure Websites](http://www.windowsazure.com/en-us/services/storage/) and [Blob Storage](http://www.windowsazure.com/en-us/services/storage/) and [Table Storage](http://www.windowsazure.com/en-us/services/storage/) for persitence.
+This is the **Photon Realtime Webhooks** sample using [Azure Websites](https://docs.microsoft.com/en-us/azure/app-service/app-service-how-works-readme?toc=%2fazure%2fapp-service-api%2ftoc.json) and [Blob Storage](http://www.windowsazure.com/en-us/services/storage/) and [Table Storage](http://www.windowsazure.com/en-us/services/storage/) for persitence.
 
 
 ## Requirements
 
-- [Photon Account for Turnbased](https://www.exitgames.com/en/Turnbased)
+- [Photon Account for Realtime](https://www.photonengine.com/en-US/Realtime)
 - Windows with IIS (Internet Information Service) [feature enabled](https://msdn.microsoft.com/en-GB/library/ms181052(v=vs.80).aspx)
 - [Visual Studio 2017](https://www.visualstudio.com/downloads/)
 - [PostMan](https://www.getpostman.com/)
@@ -62,3 +62,8 @@ however connection strings will be required for Storage Account & Notification H
 Azure Notification Hub requires clients to be registered with the [back-end service](https://docs.microsoft.com/en-us/azure/notification-hubs/notification-hubs-ios-aspnet-register-user-from-backend-to-push-notification),
 as well as notifications for [specific client OS](https://docs.microsoft.com/en-us/azure/notification-hubs/notification-hubs-aspnet-cross-platform-notification).
 A template has been created for messages in `PushNotifications/HubMessage.cs` & a template for sending a message in `PushNotification/AzureHubNotification.csx`, implement your own logic here for sending push notifications to specific clients.
+
+## Link with Photon Realtime
+Create your Photon Realtime account login and create a new app. Use the Url from your hosted Azure Web Api e.g. `https://photoncloud.azurewebsites.net`.
+Hit Manage -> Create Web Hook, set your Url and Paths for the controllers and hit apply.
+Your Photon Cloud Realtime account is now pointing to your Azure Web Api
