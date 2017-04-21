@@ -47,6 +47,9 @@ Created Infrastructure
     Application Insights allows us to track numerous aspects of out project, such as execution time, errors, calls and many more, this can then be linked
     with BI services to get deep insight into performance and such from our code
 
+## Test your Api
+A postman collection is included in this project, import it into Postman and Validate your endpoint by issuing REST calls 
+
 ## Run & develop it locally
 
 - Open the sample running Visual Studio as administrator and build the project (admin privileges are required because a virtual directory is used).
