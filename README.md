@@ -48,6 +48,8 @@ Created Infrastructure
     with BI services to get deep insight into performance and such from our code
 
 ## Test your Api
+Send a POST request e.g. localhost:6061/api/hello-world/GameCreate. In the format localhost:{port}/api/{appId}/Game{Controller}
+
 A postman collection is included in this project, import it into Postman and Validate your endpoint by issuing REST calls 
 
 ## Run & develop it locally
