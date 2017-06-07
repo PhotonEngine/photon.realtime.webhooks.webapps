@@ -38,12 +38,14 @@ namespace Photon.Webhooks.Turnbased.Controllers
             {
                 var errorResponse = new ErrorResponse { Message = message };
                 _logger.LogError($"{Request.GetUri()} - {JsonConvert.SerializeObject(errorResponse)}");
-                return BadRequest(errorResponse);
+                return Ok(errorResponse);
             }
+
+            appId = appId.ToLowerInvariant();
 
             if (request.State != null)
             {
-                var state = (string)JsonConvert.SerializeObject(request.State);
+                var state = JsonConvert.SerializeObject(request.State);
                 _dataAccess.StateSet(appId, request.GameId, state);
 
                 var properties = request.Properties;
@@ -69,7 +71,7 @@ namespace Photon.Webhooks.Turnbased.Controllers
                                                       { "en", "{USERNAME} finished. It's your turn." },
                                                       { "de", "{USERNAME} hat seinen Zug gemacht. Du bist dran." },
                                                   };
-                    _notification.SendMessage(notificationContent, request.Username, "UID2", userNextInTurn, appId);
+                    _notification.SendMessage(notificationContent, request.Nickname, "UID2", userNextInTurn, appId);
                 }
             }
 
@@ -81,13 +83,28 @@ namespace Photon.Webhooks.Turnbased.Controllers
 
         private static bool IsValid(GamePropertiesRequest request, out string message)
         {
-            if (string.IsNullOrEmpty(request.GameId))
+            if (request == null)
             {
-                message = "Missing GameId.";
+                message = "Received request does not contain expected JSON data.";
                 return false;
             }
 
-            message = "";
+            if (request.State != null)
+            {
+                if (string.IsNullOrWhiteSpace(request.GameId))
+                {
+                    message = "Missing \"GameId\" parameter.";
+                    return false;
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Nickname))
+                {
+                    message = "Missing \"Nickname\" parameter.";
+                    return false;
+                }
+            }
+
+            message = string.Empty;
             return true;
         }
 

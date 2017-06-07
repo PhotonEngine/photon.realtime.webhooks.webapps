@@ -4,6 +4,8 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
+using System;
+
 namespace Photon.Webhooks.Turnbased.Models
 {
     using System.Collections.Generic;
@@ -11,73 +13,135 @@ namespace Photon.Webhooks.Turnbased.Models
 
     #region Requests
 
-    public class GameCloseRequest
+    public class BaseRequest
+    {
+        #region Public Properties
+
+        public string AppId { get; set; }
+
+        public string AppVersion { get; set; }
+
+        public string Region { get; set; }
+
+        #endregion
+    }
+
+    public abstract class BaseWebhooksRequest : BaseRequest
+    {
+        #region Public Properties
+
+        public string Cloud { get; set; }
+
+        public string GameId { get; set; }
+
+        public string Type { get; set; }
+
+        #endregion
+    }
+
+    public abstract class BaseWebhooksUserRequest : BaseWebhooksRequest
+    {
+        #region Public Properties
+
+        [DefaultValue(-1)]
+        public int ActorNr { get; set; }
+
+        public string UserId { get; set; }
+
+        public string Nickname { get; set; }
+
+        #endregion
+    }
+
+    public abstract class BaseWebRpcRequest : BaseRequest
+    {
+        #region Public Properties
+        
+        public string UserId { get; set; }
+
+        public dynamic AuthCookie { get; set; }
+
+        public dynamic RpcParams { get; set; }
+
+        #endregion
+    }
+
+    public class GameCloseRequest : BaseWebhooksRequest
     {
         #region Public Properties
 
         [DefaultValue(-1)]
         public int ActorCount { get; set; }
 
-        public string GameId { get; set; }
-
         /// <summary>
         /// the current game state, returned again with load game
         /// </summary>
         public dynamic State { get; set; }
 
-        /// <summary>
-        /// contains the actor list with user ids and actor numbers
-        /// </summary>
-        public dynamic State2 { get; set; }
-
-        public string Type { get; set; }
-
         #endregion
     }
 
-    public class GameCreateRequest
+    public class GameCreateRequest : BaseWebhooksUserRequest
     {
         #region Public Properties
-
-        [DefaultValue(-1)]
-        public int ActorNr { get; set; }
-
-        public string GameId { get; set; }
-
-        public string UserId { get; set; }
 
         public dynamic CreateOptions { get; set; }
 
         public bool CreateIfNotExists { get; set; }
 
-        public string Type { get; set; }
-
         #endregion
     }
 
-    public class GameLeaveRequest
+    public class GameJoinRequest : BaseWebhooksUserRequest
     {
         #region Public Properties
 
-        [DefaultValue(-1)]
-        public int ActorNr { get; set; }
-
-        public string GameId { get; set; }
-
-        /// <summary>
-        /// true: the game is stored and the user can rejoin the game again (sent if the user disconnected)
-        /// false: the game is deleted (sent if the user called leave game)
-        /// </summary>
-        [DefaultValue(false)]
-        public bool IsInactive { get; set; }
-
-        public string UserId { get; set; }
-
-        public string Type { get; set; }
-        
         #endregion
     }
 
+    public class GameLeaveRequest : BaseWebhooksUserRequest
+    {
+        #region Public Properties
+
+        /// <summary> Refers to the state of the actor before leaving the Room. If set to true then the actor can rejoin the game. 
+        /// If set to false, then the actor left for good and is removed from ActorList and can't rejoin the game. </summary>
+        public bool IsInactive { get; set; }
+
+        public LeaveReason Reason { get; set; }
+
+        public dynamic AuthCookie { get; set; }
+
+        #endregion
+
+        public enum LeaveReason
+        {
+            /// <summary> Indicates that the client called Disconnect() </summary>
+            ClientDisconnect = 0,
+            /// <summary> Indicates that client has timed-out server. This is valid only when using UDP/ENET. </summary>
+            ClientTimeoutDisconnect = 1,
+            /// <summary> Indicates client is too slow to handle data sent. </summary>
+            ManagedDisconnect = 2,
+            /// <summary> Indicates low level protocol error which can be caused by data corruption. </summary>
+            ServerDisconnect = 3,
+            /// <summary> Indicates that the server has timed-out client. </summary>
+            TimeoutDisconnect = 4,
+            /// <summary> Indicates that the client called OpLeave(). </summary>
+            LeaveRequest = 101,
+            /// <summary> Indicates that the inactive actor timed-out, meaning the PlayerTtL of the room expired for that actor. </summary>
+            PlayerTtlTimedOut = 102,
+            /// <summary> Indicates a very unusual scenario where the actor did not send anything to Photon Servers for 5 minutes. 
+            /// Normally peers timeout long before that but Photon does a check for every connected peer's timestamp of 
+            /// the last exchange with the servers (called LastTouch) every 5 minutes. </summary>
+            PeerLastTouchTimedout = 103,
+            /// <summary> Indicates that the actor was removed from ActorList by a plugin. </summary>
+            PluginRequest = 104,
+            /// <summary> Indicates an internal error in a plugin implementation. </summary>
+            PluginFailedJoin = 105
+        }
+
+    }
+
+    [Obsolete("This is no longer used.")]
     public class GameLoadRequest
     {
         #region Public Properties
@@ -92,50 +156,37 @@ namespace Photon.Webhooks.Turnbased.Models
         #endregion
     }
 
-    public class GamePropertiesRequest
+    public class GamePropertiesRequest : BaseWebhooksUserRequest
     {
         #region Public Properties
-
-        [DefaultValue(-1)]
-        public int ActorNr { get; set; }
-
-        public string GameId { get; set; }
 
         public dynamic State { get; set; }
 
         public Dictionary<string, object> Properties { get; set; }
 
-        public string Type { get; set; }
-
-        public string UserId { get; set; }
-
-        public string Username { get; set; }
-        #endregion
-    }
-
-    public class GetGameListRequest
-    {
-        #region Public Properties
-
-        public string UserId { get; set; }
+        public dynamic AuthCookie { get; set; }
 
         #endregion
     }
 
-    public class GameEventRequest
+    public class GameEventRequest : BaseWebhooksUserRequest
     {
         #region Public Properties
 
-        [DefaultValue(-1)]
-        public int ActorNr { get; set; }
-
-        public string GameId { get; set; }
+        public byte EvCode { get; set; }
 
         public dynamic Data { get; set; }
 
         public dynamic State { get; set; }
+        
+        public dynamic AuthCookie { get; set; }
 
-        public string Type { get; set; }
+        #endregion
+    }
+
+    public class GetGameListRequest : BaseWebRpcRequest
+    {
+        #region Public Properties
 
         #endregion
     }
@@ -187,7 +238,7 @@ namespace Photon.Webhooks.Turnbased.Models
     {
         #region Public Properties
 
-        public int ResultCode => (int) Models.ResultCode.Ok;
+        public int ResultCode => (int)Models.ResultCode.Ok;
 
         #endregion
     }
@@ -197,6 +248,6 @@ namespace Photon.Webhooks.Turnbased.Models
     public enum ResultCode
     {
         Ok = 0,
-        Failed = 1, 
+        Failed = 1,
     }
 }

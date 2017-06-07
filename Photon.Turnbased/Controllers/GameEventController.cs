@@ -22,6 +22,7 @@ namespace Photon.Webhooks.Turnbased.Controllers
         {
             _logger = logger;
         }
+
         #region Public Methods and Operators
 
         [HttpPost]

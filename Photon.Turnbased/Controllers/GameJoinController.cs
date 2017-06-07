@@ -26,7 +26,7 @@ namespace Photon.Webhooks.Turnbased.Controllers
         #region Public Methods and Operators
 
         [HttpPost]
-        public IActionResult Index([FromBody] GameLeaveRequest request, string appId)
+        public IActionResult Index([FromBody] GameJoinRequest request, string appId)
         {
             var response = new OkResponse();
             _logger.LogInformation($"{Request.GetUri()} - {JsonConvert.SerializeObject(response)}");

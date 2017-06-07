@@ -8,7 +8,6 @@ using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Photon.Webhooks.Turnbased.DataAccess;
-using ServiceStack;
 
 namespace Photon.Webhooks.Turnbased.Controllers
 {
@@ -32,13 +31,14 @@ namespace Photon.Webhooks.Turnbased.Controllers
         [HttpPost]
         public IActionResult Index([FromBody] GetGameListRequest request, string appId)
         {
-            string message;
-            if (!IsValid(request, out message))
+            if (!IsValid(request, out string message))
             {
                 var errorResponse = new ErrorResponse { Message = message };
                 _logger.LogError($"{Request.GetUri()} - {JsonConvert.SerializeObject(errorResponse)}");
-                return BadRequest(errorResponse);
+                return Ok(errorResponse);
             }
+
+            appId = appId.ToLowerInvariant();
 
             var list = new Dictionary<string, object>();
 
@@ -56,7 +56,7 @@ namespace Photon.Webhooks.Turnbased.Controllers
                         customProperties = state.CustomProperties;
                     }
 
-                    var gameListItem = new GameListItem(){ ActorNr = int.Parse(pair.Value), Properties = customProperties };
+                    var gameListItem = new GameListItem { ActorNr = int.Parse(pair.Value), Properties = customProperties };
 
                     list.Add(pair.Key, gameListItem);
                 }
@@ -74,13 +74,19 @@ namespace Photon.Webhooks.Turnbased.Controllers
 
         private static bool IsValid(GetGameListRequest request, out string message)
         {
-            if (string.IsNullOrEmpty(request.UserId))
+            if (request == null)
             {
-                message = "Missing UserId.";
+                message = "Received request does not contain expected JSON data.";
                 return false;
             }
 
-            message = "";
+            if (string.IsNullOrWhiteSpace(request.UserId))
+            {
+                message = "Missing \"UserId\" parameter.";
+                return false;
+            }
+
+            message = string.Empty;
             return true;
         }
         #endregion

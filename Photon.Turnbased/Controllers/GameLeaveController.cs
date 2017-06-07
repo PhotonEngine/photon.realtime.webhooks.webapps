@@ -33,19 +33,19 @@ namespace Photon.Webhooks.Turnbased.Controllers
             {
                 var errorResponse = new ErrorResponse { Message = message };
                 _logger.LogError($"{Request.GetUri()} - {JsonConvert.SerializeObject(errorResponse)}");
-                return BadRequest(errorResponse);
+                return Ok(errorResponse);
             }
 
+            appId = appId.ToLowerInvariant();
+
+            // TODO: update this check and maybe move game insertion to GameJoin controller
             if (request.IsInactive)
             {
-                if (request.ActorNr > 0)
-                {
-                    _dataAccess.GameInsert(appId, request.UserId, request.GameId, request.ActorNr);
-                }
+                _dataAccess.GameInsert(appId, request.UserId, request.GameId, request.ActorNr);
             }
             else
             {
-                    _dataAccess.GameDelete(appId, request.UserId, request.GameId);
+                _dataAccess.GameDelete(appId, request.UserId, request.GameId);
             }
 
             var okResponse = new OkResponse();
@@ -55,19 +55,31 @@ namespace Photon.Webhooks.Turnbased.Controllers
 
         private static bool IsValid(GameLeaveRequest request, out string message)
         {
-            if (string.IsNullOrEmpty(request.GameId))
+            if (request == null)
             {
-                message = "Missing GameId.";
+                message = "Received request does not contain expected JSON data.";
                 return false;
             }
 
-            if (string.IsNullOrEmpty(request.UserId))
+            if (string.IsNullOrWhiteSpace(request.GameId))
             {
-                message = "Missing UserId.";
+                message = "Missing \"GameId\" parameter.";
                 return false;
             }
 
-            message = "";
+            if (string.IsNullOrWhiteSpace(request.UserId))
+            {
+                message = "Missing \"UserId\" parameter.";
+                return false;
+            }
+
+            if (request.ActorNr <= 0)
+            {
+                message = $"Unexpected \"ActorNr\" value: {request.ActorNr}.";
+                return false;
+            }
+
+            message = string.Empty;
             return true;
         }
 

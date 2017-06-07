@@ -16,20 +16,15 @@ namespace Photon.Webhooks.Turnbased.Controllers
 
     public class GameCreateController : Controller
     {
-        //TODO: Class contains static singleton methods, means that logger can't be used in methods. 
-        //TODO: Maybe just return the message and log or change to no static? Will need to change caller as well
-
         private readonly ILogger<GameCreateController> _logger;
-        //TODO: cleaner way of using IDataAccess
-        //Don't really like this, but it allows a static variable which this class wants for the static methods
-        internal static  IDataAccess DataAccess { get; private set; }
+        private readonly IDataAccess _dataAccess;
 
         #region Public Methods and Operators
 
         public GameCreateController(ILogger<GameCreateController> logger, DataSources dataSources)
         {
             _logger = logger;
-            DataAccess = dataSources.DataAccess;
+            _dataAccess = dataSources.DataAccess;
         }
 
         [HttpPost]
@@ -40,17 +35,25 @@ namespace Photon.Webhooks.Turnbased.Controllers
             {
                 var errorResponse = new ErrorResponse { Message = message };
                 _logger.LogError($"{Request.GetUri()} - {JsonConvert.SerializeObject(errorResponse)}");
-                return BadRequest(errorResponse);
+                return Ok(errorResponse);
             }
 
+            appId = appId.ToLowerInvariant();
+
             dynamic response;
-            if (!string.IsNullOrEmpty(request.Type) && request.Type == "Load")
+            if ("Load".Equals(request.Type))
             {
                 response = GameLoad(request, appId);
             }
-            else
+            else if ("Create".Equals(request.Type))
             {
                 response = GameCreate(request, appId);
+            }
+            else
+            {
+                var errorResponse = new ErrorResponse { Message = $"Unexpected \"Type\" parameter value: \"{request.Type}\"." };
+                _logger.LogError($"{Request.GetUri()} - {JsonConvert.SerializeObject(errorResponse)}");
+                return Ok(errorResponse);
             }
 
             _logger.LogInformation($"{Request.GetUri()} - {JsonConvert.SerializeObject(response)}");
@@ -60,30 +63,30 @@ namespace Photon.Webhooks.Turnbased.Controllers
         private dynamic GameCreate(GameCreateRequest request, string appId)
         {
             dynamic response;
-            if (DataAccess.StateExists(appId, request.GameId))
+            if (_dataAccess.StateExists(appId, request.GameId))
             {
-                response = new ErrorResponse { Message = "Game already exists." };
+                response = new ErrorResponse { Message = $"Game with ID=\"{request.GameId}\" already exist." };
                 return response;
             }
 
             if (request.CreateOptions == null)
             {
-                DataAccess.StateSet(appId, request.GameId, string.Empty);
+                _dataAccess.StateSet(appId, request.GameId, string.Empty);
             }
             else
             {
-                DataAccess.StateSet(appId, request.GameId, (string)JsonConvert.SerializeObject(request.CreateOptions));
+                _dataAccess.StateSet(appId, request.GameId, JsonConvert.SerializeObject(request.CreateOptions));
             }
 
             response = new OkResponse();
-            //_logger.LogInformation($"{Request.GetUri()} - {JsonConvert.SerializeObject(response)}");
+            _logger.LogInformation($"{Request.GetUri()} - {JsonConvert.SerializeObject(response)}");
             return response;
         }
 
-        public static dynamic GameLoad(GameCreateRequest request, string appId)
+        public dynamic GameLoad(GameCreateRequest request, string appId)
         {
             dynamic response;
-            var stateJson = DataAccess.StateGet(appId, request.GameId);
+            var stateJson = _dataAccess.StateGet(appId, request.GameId);
 
             if (!string.IsNullOrEmpty(stateJson))
             {
@@ -93,38 +96,51 @@ namespace Photon.Webhooks.Turnbased.Controllers
             //TBD - check how deleteIfEmpty works with createifnot exists
             if (stateJson == string.Empty)
             {
-                DataAccess.StateDelete(appId, request.GameId);
-                
-                //_logger.LogInformation($"Deleted empty state, app id {appId}, gameId {request.GameId}");
-        
+                _dataAccess.StateDelete(appId, request.GameId);
+
+                _logger.LogInformation($"Deleted empty state, app id {appId}, gameId {request.GameId}");
+
             }
 
             if (request.CreateIfNotExists)
             {
                 response = new OkResponse();
-                //_logger.LogInformation($"{Request.GetUri()} - {JsonConvert.SerializeObject(response)}");
+                _logger.LogInformation($"{Request.GetUri()} - {JsonConvert.SerializeObject(response)}");
                 return response;
             }
 
-            response = new ErrorResponse { Message = "GameId not Found." };
-            //_logger.LogError($"{Request.GetUri()} - {JsonConvert.SerializeObject(response)}");
+            response = new ErrorResponse { Message = $"Game with ID=\"{request.GameId}\" not found." };
+            _logger.LogError($"{Request.GetUri()} - {JsonConvert.SerializeObject(response)}");
             return response;
         }
+
         private static bool IsValid(GameCreateRequest request, out string message)
         {
-            if (string.IsNullOrEmpty(request.GameId))
+            if (request == null)
             {
-                message = "Missing GameId.";
+                message = "Received request does not contain expected JSON data.";
                 return false;
             }
 
-            if (string.IsNullOrEmpty(request.UserId))
+            if (string.IsNullOrWhiteSpace(request.GameId))
             {
-                message = "Missing UserId.";
+                message = "Missing \"GameId\" parameter.";
                 return false;
             }
 
-            message = "";
+            if (string.IsNullOrWhiteSpace(request.UserId))
+            {
+                message = "Missing \"UserId\" parameter.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Type))
+            {
+                message = "Missing \"Type\" parameter.";
+                return false;
+            }
+
+            message = string.Empty;
             return true;
         }
 

@@ -42,8 +42,10 @@ namespace Photon.Webhooks.Turnbased.Controllers
             {
                 var errorResponse = new ErrorResponse { Message = message };
                 _logger.LogError($"{Request.GetUri()} - {JsonConvert.SerializeObject(errorResponse)}");
-                return BadRequest(errorResponse);
+                return Ok(errorResponse);
             }
+
+            appId = appId.ToLowerInvariant();
 
             if (request.State == null)
             {
@@ -51,7 +53,7 @@ namespace Photon.Webhooks.Turnbased.Controllers
                 {
                     var errorResponse = new ErrorResponse { Message = "Missing State." };
                     _logger.LogError($"{Request.GetUri()} - {JsonConvert.SerializeObject(errorResponse)}");
-                    return BadRequest(errorResponse);
+                    return Ok(errorResponse);
                 }
 
                 _dataAccess.StateDelete(appId, request.GameId);
@@ -64,20 +66,10 @@ namespace Photon.Webhooks.Turnbased.Controllers
             foreach (var actor in request.State.ActorList)
             {
                 //var listProperties = new ListProperties() { ActorNr = (int)actor.ActorNr, Properties = request.State.CustomProperties };
-                //DataSources.DataAccess.GameInsert(appId, (string)actor.UserId, request.GameId, (string)JsonConvert.SerializeObject(listProperties));
                 _dataAccess.GameInsert(appId, (string)actor.UserId, request.GameId, (int)actor.ActorNr);
-            }                
-
-            //deprecated
-            if (request.State2 != null)
-            {
-                foreach (var actor in request.State2.ActorList)
-                {
-                    _dataAccess.GameInsert(appId, (string)actor.UserId, request.GameId, (int)actor.ActorNr);
-                }
             }
 
-            var state = (string)JsonConvert.SerializeObject(request.State);
+            var state = JsonConvert.SerializeObject(request.State);
             _dataAccess.StateSet(appId, request.GameId, state);
 
             var response = new OkResponse();
@@ -87,13 +79,19 @@ namespace Photon.Webhooks.Turnbased.Controllers
 
         private static bool IsValid(GameCloseRequest request, out string message)
         {
-            if (string.IsNullOrEmpty(request.GameId))
+            if (request == null)
             {
-                message = "Missing GameId.";
+                message = "Received request does not contain expected JSON data.";
                 return false;
             }
 
-            message = "";
+            if (string.IsNullOrWhiteSpace(request.GameId))
+            {
+                message = "Missing \"GameId\" parameter.";
+                return false;
+            }
+
+            message = string.Empty;
             return true;
         }
 

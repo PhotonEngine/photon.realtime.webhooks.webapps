@@ -23,6 +23,7 @@ Without a credit card request a free Microsoft Azure Pass simply by sending a sh
 Use the Microsoft Azure Pass to sign up at [www.windowsazurepass.com](www.windowsazurepass.com) and you'll also discover the cloud power of Microsoft Azure for free!
 
 ## Deploy to Azure
+
 Hit this link to create all infrastructure required to run locally and in Azure.  
  
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://azuredeploy.net/)
@@ -48,6 +49,7 @@ Created Infrastructure
     with BI services to get deep insight into performance and such from our code
 
 ## Test your Api
+
 Send a POST request e.g. localhost:6061/api/hello-world/GameCreate. In the format localhost:{port}/api/{appId}/Game{Controller}
 
 A postman collection is included in this project, import it into Postman and Validate your endpoint by issuing REST calls 
@@ -64,11 +66,13 @@ Deployment of the Azure Infrastructure will also update connection strings of cr
 however connection strings will be required for Storage Account & Notification Hub, these are updated in `appsettings.json`
 
 ## Notification Hub
+
 Azure Notification Hub requires clients to be registered with the [back-end service](https://docs.microsoft.com/en-us/azure/notification-hubs/notification-hubs-ios-aspnet-register-user-from-backend-to-push-notification),
 as well as notifications for [specific client OS](https://docs.microsoft.com/en-us/azure/notification-hubs/notification-hubs-aspnet-cross-platform-notification).
 A template has been created for messages in `PushNotifications/HubMessage.cs` & a template for sending a message in `PushNotification/AzureHubNotification.csx`, implement your own logic here for sending push notifications to specific clients.
 
 ## Link with Photon Realtime
+
 Create your Photon Realtime account login and create a new app. Use the Url from your hosted Azure Web Api e.g. `https://photoncloud.azurewebsites.net`.
 Hit Manage -> Create Web Hook, set your Url and Paths for the controllers and hit apply.
 Your Photon Cloud Realtime account is now pointing to your Azure Web Api
